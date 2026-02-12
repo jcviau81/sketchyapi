@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SketchyAPI — Satire-as-a-Service</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#f59e0b', 600: '#d97706', 400: '#fbbf24' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    body { font-family: 'Space Grotesk', sans-serif; }
+    .tone-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #f59e0b; border-radius: 50%; cursor: pointer; }
+    .tone-slider::-moz-range-thumb { width: 20px; height: 20px; background: #f59e0b; border-radius: 50%; cursor: pointer; border: none; }
+    .tone-slider { -webkit-appearance: none; height: 6px; background: #3f3f46; border-radius: 3px; }
+    .pulse-dot { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .panel-grid { display: grid; gap: 4px; }
+    .panel-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .panel-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    [x-cloak] { display: none !important; }
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen" x-data="app()" x-cloak>
+
+  <!-- Nav -->
+  <nav class="border-b border-zinc-800 sticky top-0 bg-zinc-950/90 backdrop-blur z-50">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="#" @click.prevent="page='home'" class="flex items-center gap-2 text-lg font-bold">
+        <span class="text-2xl">🎭</span>
+        <span class="text-brand-500">Sketchy</span><span>API</span>
+      </a>
+      <div class="flex items-center gap-4 text-sm">
+        <button @click="page='home'" :class="page==='home' ? 'text-brand-500' : 'text-zinc-400 hover:text-zinc-200'">Home</button>
+        <button @click="page='generate'" :class="page==='generate' ? 'text-brand-500' : 'text-zinc-400 hover:text-zinc-200'">Generator</button>
+        <button @click="page='dashboard'" :class="page==='dashboard' ? 'text-brand-500' : 'text-zinc-400 hover:text-zinc-200'">Dashboard</button>
+        <button @click="page='docs'" :class="page==='docs' ? 'text-brand-500' : 'text-zinc-400 hover:text-zinc-200'">API Docs</button>
+        <template x-if="apiKey">
+          <span class="text-xs text-zinc-500 hidden sm:inline">🔑 Connected</span>
+        </template>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HOME ============ -->
+  <div x-show="page==='home'" class="max-w-6xl mx-auto px-4">
+    <!-- Hero -->
+    <section class="py-20 text-center">
+      <h1 class="text-5xl sm:text-6xl font-bold mb-4">
+        Turn any news article into a<br>
+        <span class="text-brand-500">satirical comic</span>
+      </h1>
+      <p class="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
+        One API call. AI-powered script writing + image generation. 
+        From headline to comic strip in minutes.
+      </p>
+      <div class="flex gap-3 justify-center">
+        <button @click="page='generate'" class="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-6 py-3 rounded-lg transition">
+          Try It Now →
+        </button>
+        <button @click="page='docs'" class="border border-zinc-700 hover:border-zinc-500 text-zinc-300 px-6 py-3 rounded-lg transition">
+          View API Docs
+        </button>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="py-12">
+      <h2 class="text-2xl font-bold text-center mb-10">How It Works</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
+          <div class="text-4xl mb-3">📰</div>
+          <h3 class="font-semibold text-lg mb-2">1. Submit an Article</h3>
+          <p class="text-zinc-400 text-sm">Paste a URL or text. Our AI reads and understands the story.</p>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
+          <div class="text-4xl mb-3">✍️</div>
+          <h3 class="font-semibold text-lg mb-2">2. AI Writes the Script</h3>
+          <p class="text-zinc-400 text-sm">Characters, dialogue, and satirical angles — all generated.</p>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
+          <div class="text-4xl mb-3">🎨</div>
+          <h3 class="font-semibold text-lg mb-2">3. Comic Generated</h3>
+          <p class="text-zinc-400 text-sm">Panel-by-panel images assembled into a complete comic strip.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="py-16">
+      <h2 class="text-2xl font-bold text-center mb-10">Pricing</h2>
+      <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+          <h3 class="font-bold text-lg">Free</h3>
+          <p class="text-3xl font-bold mt-2 mb-4">$0<span class="text-sm text-zinc-500 font-normal">/mo</span></p>
+          <ul class="text-sm text-zinc-400 space-y-2">
+            <li>✓ 5 comics / hour</li>
+            <li>✓ Up to 9 panels</li>
+            <li>✓ Watermarked output</li>
+            <li>✓ Community support</li>
+          </ul>
+        </div>
+        <div class="bg-zinc-900 border-2 border-brand-500 rounded-xl p-6 relative">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-black text-xs font-bold px-3 py-1 rounded-full">POPULAR</span>
+          <h3 class="font-bold text-lg">Publisher</h3>
+          <p class="text-3xl font-bold mt-2 mb-4">$49<span class="text-sm text-zinc-500 font-normal">/mo</span></p>
+          <ul class="text-sm text-zinc-400 space-y-2">
+            <li>✓ 50 comics / hour</li>
+            <li>✓ Up to 18 panels</li>
+            <li>✓ No watermark</li>
+            <li>✓ Webhook callbacks</li>
+            <li>✓ Priority queue</li>
+          </ul>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+          <h3 class="font-bold text-lg">Enterprise</h3>
+          <p class="text-3xl font-bold mt-2 mb-4">Custom</p>
+          <ul class="text-sm text-zinc-400 space-y-2">
+            <li>✓ Unlimited comics</li>
+            <li>✓ Custom styles</li>
+            <li>✓ Dedicated worker</li>
+            <li>✓ SLA & support</li>
+            <li>✓ White-label option</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Demo -->
+    <section class="py-12 pb-20">
+      <h2 class="text-2xl font-bold text-center mb-6">Quick Demo</h2>
+      <div class="max-w-xl mx-auto bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+        <p class="text-sm text-zinc-400 mb-3">Enter your API key to try it out:</p>
+        <input type="text" x-model="apiKeyInput" placeholder="sk-sketchy-..." 
+          class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm mb-3 focus:border-brand-500 focus:outline-none">
+        <button @click="saveKey(); page='generate'" class="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-4 py-2 rounded-lg text-sm w-full transition">
+          Connect & Start Creating →
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ GENERATOR ============ -->
+  <div x-show="page==='generate'" class="max-w-6xl mx-auto px-4 py-8">
+    <!-- API Key prompt if not set -->
+    <template x-if="!apiKey">
+      <div class="max-w-md mx-auto bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
+        <h2 class="text-xl font-bold mb-3">🔑 Enter API Key</h2>
+        <input type="text" x-model="apiKeyInput" placeholder="sk-sketchy-..." 
+          class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm mb-3 focus:border-brand-500 focus:outline-none">
+        <button @click="saveKey()" class="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-4 py-2 rounded-lg text-sm w-full transition">
+          Connect
+        </button>
+      </div>
+    </template>
+
+    <template x-if="apiKey">
+      <div class="grid lg:grid-cols-5 gap-6">
+        <!-- Left: Form -->
+        <div class="lg:col-span-2 space-y-4">
+          <h2 class="text-2xl font-bold">🎨 Comic Generator</h2>
+
+          <!-- Input type toggle -->
+          <div class="flex gap-2">
+            <button @click="inputMode='url'" :class="inputMode==='url' ? 'bg-brand-500 text-black' : 'bg-zinc-800 text-zinc-400'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition">URL</button>
+            <button @click="inputMode='text'" :class="inputMode==='text' ? 'bg-brand-500 text-black' : 'bg-zinc-800 text-zinc-400'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition">Free Text</button>
+          </div>
+
+          <div x-show="inputMode==='url'">
+            <input type="url" x-model="form.article_url" placeholder="https://example.com/article..."
+              class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm focus:border-brand-500 focus:outline-none">
+          </div>
+          <div x-show="inputMode==='text'">
+            <textarea x-model="form.article_text" rows="4" placeholder="Paste article text here..."
+              class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm focus:border-brand-500 focus:outline-none resize-none"></textarea>
+          </div>
+
+          <!-- Title -->
+          <input type="text" x-model="form.title" placeholder="Title (optional)"
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm focus:border-brand-500 focus:outline-none">
+
+          <!-- Panels -->
+          <div>
+            <label class="text-sm text-zinc-400 mb-1 block">Panels</label>
+            <div class="flex gap-2">
+              <template x-for="n in [4, 6, 9, 12, 18]" :key="n">
+                <button @click="form.panels = n" :class="form.panels === n ? 'bg-brand-500 text-black' : 'bg-zinc-800 text-zinc-400'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition" x-text="n"></button>
+              </template>
+            </div>
+          </div>
+
+          <!-- Tone -->
+          <div>
+            <label class="text-sm text-zinc-400 mb-1 block">Tone: <span class="text-brand-500 font-medium" x-text="toneLabels[form.tone]"></span></label>
+            <div class="flex gap-2">
+              <template x-for="t in ['gentle', 'sharp', 'savage', 'absurd']" :key="t">
+                <button @click="form.tone = t" :class="form.tone === t ? 'bg-brand-500 text-black' : 'bg-zinc-800 text-zinc-400'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition capitalize" x-text="t"></button>
+              </template>
+            </div>
+          </div>
+
+          <!-- Style -->
+          <div>
+            <label class="text-sm text-zinc-400 mb-1 block">Style</label>
+            <div class="flex flex-wrap gap-2">
+              <template x-for="s in styles" :key="s.value">
+                <button @click="form.style = s.value" :class="form.style === s.value ? 'bg-brand-500 text-black' : 'bg-zinc-800 text-zinc-400'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition" x-text="s.label"></button>
+              </template>
+            </div>
+          </div>
+
+          <!-- Language -->
+          <div>
+            <label class="text-sm text-zinc-400 mb-1 block">Language</label>
+            <div class="flex gap-2">
+              <button @click="form.language='en'" :class="form.language==='en' ? 'bg-brand-500 text-black' : 'bg-zinc-800 text-zinc-400'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition">🇬🇧 English</button>
+              <button @click="form.language='fr'" :class="form.language==='fr' ? 'bg-brand-500 text-black' : 'bg-zinc-800 text-zinc-400'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition">🇫🇷 Français</button>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button @click="submitComic()" :disabled="generating" 
+            class="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-wait text-black font-bold px-4 py-3 rounded-lg transition text-lg">
+            <span x-show="!generating">🚀 Generate Comic</span>
+            <span x-show="generating" class="flex items-center justify-center gap-2">
+              <span class="pulse-dot">●</span> Generating...
+            </span>
+          </button>
+
+          <p x-show="error" class="text-red-400 text-sm" x-text="error"></p>
+        </div>
+
+        <!-- Right: Result -->
+        <div class="lg:col-span-3">
+          <!-- Job status -->
+          <template x-if="currentJob">
+            <div class="space-y-4">
+              <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="font-semibold" x-text="currentJob.title || 'Generating...'"></h3>
+                  <span class="text-xs px-2 py-1 rounded-full font-medium"
+                    :class="{
+                      'bg-yellow-500/20 text-yellow-400': ['pending','writing_script','generating_images','assembling'].includes(currentJob.status),
+                      'bg-green-500/20 text-green-400': currentJob.status==='completed',
+                      'bg-red-500/20 text-red-400': currentJob.status==='failed'
+                    }" x-text="statusLabel(currentJob.status)"></span>
+                </div>
+                <p class="text-sm text-zinc-400" x-text="currentJob.progress || ''"></p>
+                <!-- Progress bar -->
+                <div x-show="currentJob.panels_total > 0" class="mt-2">
+                  <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-brand-500 rounded-full transition-all duration-500" :style="`width: ${(currentJob.panels_completed / currentJob.panels_total) * 100}%`"></div>
+                  </div>
+                  <p class="text-xs text-zinc-500 mt-1" x-text="`${currentJob.panels_completed} / ${currentJob.panels_total} panels`"></p>
+                </div>
+              </div>
+
+              <!-- Combined image -->
+              <template x-if="currentJob.combined_image_url">
+                <div class="space-y-3">
+                  <img :src="currentJob.combined_image_url" class="w-full rounded-xl border border-zinc-800" alt="Combined comic">
+                  <div class="flex gap-2">
+                    <a :href="currentJob.combined_image_url" download class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-sm transition">📥 Download Combined</a>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Individual panels -->
+              <template x-if="currentJob.panels && currentJob.panels.length > 0">
+                <div>
+                  <h4 class="text-sm font-semibold text-zinc-400 mb-2">Individual Panels</h4>
+                  <div class="panel-grid" :class="currentJob.panels.length <= 4 ? 'cols-2' : 'cols-3'">
+                    <template x-for="panel in currentJob.panels" :key="panel.index">
+                      <div class="relative group" x-show="panel.image_url">
+                        <img :src="panel.image_url" class="rounded-lg border border-zinc-800 w-full" :alt="`Panel ${panel.index}`">
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/70 text-xs p-1.5 rounded-b-lg opacity-0 group-hover:opacity-100 transition">
+                          <p class="font-semibold text-brand-400" x-text="panel.character"></p>
+                          <p class="text-zinc-300" x-text="panel.dialogue"></p>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- Empty state -->
+          <template x-if="!currentJob">
+            <div class="flex items-center justify-center h-64 border-2 border-dashed border-zinc-800 rounded-xl">
+              <p class="text-zinc-600 text-center">
+                <span class="text-4xl block mb-2">🎭</span>
+                Your comic will appear here
+              </p>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div x-show="page==='dashboard'" class="max-w-6xl mx-auto px-4 py-8">
+    <template x-if="!apiKey">
+      <div class="max-w-md mx-auto bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
+        <h2 class="text-xl font-bold mb-3">🔑 Enter API Key</h2>
+        <input type="text" x-model="apiKeyInput" placeholder="sk-sketchy-..."
+          class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm mb-3 focus:border-brand-500 focus:outline-none">
+        <button @click="saveKey()" class="bg-brand-500 hover:bg-brand-600 text-black font-semibold px-4 py-2 rounded-lg text-sm w-full transition">Connect</button>
+      </div>
+    </template>
+
+    <template x-if="apiKey">
+      <div class="space-y-6">
+        <h2 class="text-2xl font-bold">📊 Dashboard</h2>
+
+        <!-- Balance -->
+        <div class="grid sm:grid-cols-4 gap-4" x-init="fetchBalance()">
+          <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p class="text-xs text-zinc-500 uppercase">Tier</p>
+            <p class="text-xl font-bold capitalize" x-text="balance.tier || '—'"></p>
+          </div>
+          <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p class="text-xs text-zinc-500 uppercase">Used (1h)</p>
+            <p class="text-xl font-bold" x-text="balance.requests_used ?? '—'"></p>
+          </div>
+          <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p class="text-xs text-zinc-500 uppercase">Remaining</p>
+            <p class="text-xl font-bold text-green-400" x-text="balance.requests_remaining ?? '—'"></p>
+          </div>
+          <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <p class="text-xs text-zinc-500 uppercase">Limit</p>
+            <p class="text-xl font-bold" x-text="balance.requests_limit ?? '—'"></p>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div>
+          <h3 class="font-semibold text-lg mb-3">Recent Jobs</h3>
+          <template x-if="history.length === 0">
+            <p class="text-zinc-500 text-sm">No jobs yet. Go generate a comic!</p>
+          </template>
+          <div class="space-y-2">
+            <template x-for="job in history" :key="job.job_id">
+              <div @click="viewJob(job.job_id)" class="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:border-zinc-600 transition">
+                <div>
+                  <p class="font-medium text-sm" x-text="job.title || job.job_id"></p>
+                  <p class="text-xs text-zinc-500" x-text="new Date(job.created_at).toLocaleString()"></p>
+                </div>
+                <span class="text-xs px-2 py-1 rounded-full font-medium"
+                  :class="{
+                    'bg-yellow-500/20 text-yellow-400': ['pending','writing_script','generating_images','assembling'].includes(job.status),
+                    'bg-green-500/20 text-green-400': job.status==='completed',
+                    'bg-red-500/20 text-red-400': job.status==='failed'
+                  }" x-text="statusLabel(job.status)"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- API Key management -->
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <h3 class="font-semibold text-sm mb-2">API Key</h3>
+          <div class="flex gap-2 items-center">
+            <code class="bg-zinc-800 px-3 py-1.5 rounded text-sm flex-1 text-zinc-400" x-text="apiKey.slice(0,12) + '...'"></code>
+            <button @click="apiKey=''; apiKeyInput=''; localStorage.removeItem('sketchy_api_key')" class="text-red-400 text-sm hover:text-red-300">Disconnect</button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- ============ DOCS ============ -->
+  <div x-show="page==='docs'" class="max-w-4xl mx-auto px-4 py-8">
+    <h2 class="text-2xl font-bold mb-6">📚 API Documentation</h2>
+
+    <div class="space-y-6">
+      <!-- Swagger link -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+        <h3 class="font-semibold text-lg mb-2">Interactive API Explorer</h3>
+        <p class="text-zinc-400 text-sm mb-3">Full OpenAPI/Swagger documentation with try-it-out functionality.</p>
+        <a href="/docs" target="_blank" class="inline-block bg-brand-500 hover:bg-brand-600 text-black font-semibold px-4 py-2 rounded-lg text-sm transition">
+          Open Swagger UI →
+        </a>
+      </div>
+
+      <!-- Base URL -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+        <h3 class="font-semibold text-lg mb-2">Base URL</h3>
+        <code class="bg-zinc-800 px-3 py-2 rounded block text-sm text-brand-400">https://sketchyapi.snaf.foo/api/v1</code>
+      </div>
+
+      <!-- Auth -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+        <h3 class="font-semibold text-lg mb-2">Authentication</h3>
+        <p class="text-zinc-400 text-sm mb-2">All endpoints require an API key via header:</p>
+        <code class="bg-zinc-800 px-3 py-2 rounded block text-sm text-zinc-300">X-API-Key: sk-sketchy-your-key</code>
+      </div>
+
+      <!-- Endpoints -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-6">
+        <h3 class="font-semibold text-lg">Endpoints</h3>
+
+        <!-- POST /comic -->
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-0.5 rounded">POST</span>
+            <code class="text-sm">/api/v1/comic</code>
+          </div>
+          <p class="text-zinc-400 text-sm mb-2">Submit a comic generation job.</p>
+          <div class="bg-zinc-800 rounded-lg p-3 text-sm overflow-x-auto">
+            <pre class="text-zinc-300"><code>{
+  "article_url": "https://example.com/article",
+  "panels": 18,
+  "tone": "sharp",
+  "style": "editorial cartoon style, vibrant colors",
+  "language": "en"
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- GET /comic/:id -->
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-0.5 rounded">GET</span>
+            <code class="text-sm">/api/v1/comic/{job_id}</code>
+          </div>
+          <p class="text-zinc-400 text-sm">Get job status and result. Poll until status is <code class="text-brand-400">completed</code>.</p>
+        </div>
+
+        <!-- GET /comic/:id/combined -->
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-0.5 rounded">GET</span>
+            <code class="text-sm">/api/v1/comic/{job_id}/combined</code>
+          </div>
+          <p class="text-zinc-400 text-sm">Download the combined comic image (PNG).</p>
+        </div>
+
+        <!-- GET /comic/:id/panels/:n -->
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-0.5 rounded">GET</span>
+            <code class="text-sm">/api/v1/comic/{job_id}/panels/{n}</code>
+          </div>
+          <p class="text-zinc-400 text-sm">Download individual panel image.</p>
+        </div>
+
+        <!-- GET /balance -->
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-blue-500/20 text-blue-400 text-xs font-bold px-2 py-0.5 rounded">GET</span>
+            <code class="text-sm">/api/v1/balance</code>
+          </div>
+          <p class="text-zinc-400 text-sm">Check usage and quota for your API key.</p>
+        </div>
+      </div>
+
+      <!-- Code examples -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+        <h3 class="font-semibold text-lg">Code Examples</h3>
+
+        <!-- curl -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">cURL</h4>
+          <div class="bg-zinc-800 rounded-lg p-3 text-sm overflow-x-auto">
+            <pre class="text-zinc-300"><code># Submit a comic job
+curl -X POST https://sketchyapi.snaf.foo/api/v1/comic \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: sk-sketchy-mvp-001" \
+  -d '{"article_url": "https://example.com/news", "panels": 9, "tone": "savage"}'
+
+# Check status
+curl https://sketchyapi.snaf.foo/api/v1/comic/JOB_ID \
+  -H "X-API-Key: sk-sketchy-mvp-001"</code></pre>
+          </div>
+        </div>
+
+        <!-- Python -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">Python</h4>
+          <div class="bg-zinc-800 rounded-lg p-3 text-sm overflow-x-auto">
+            <pre class="text-zinc-300"><code>import requests, time
+
+API = "https://sketchyapi.snaf.foo/api/v1"
+HEADERS = {"X-API-Key": "sk-sketchy-mvp-001"}
+
+# Submit
+r = requests.post(f"{API}/comic", json={
+    "article_url": "https://example.com/news",
+    "panels": 9, "tone": "savage"
+}, headers=HEADERS)
+job = r.json()
+
+# Poll until done
+while job["status"] not in ("completed", "failed"):
+    time.sleep(5)
+    job = requests.get(f"{API}/comic/{job['job_id']}", headers=HEADERS).json()
+
+print(f"Comic ready: {job['combined_image_url']}")</code></pre>
+          </div>
+        </div>
+
+        <!-- JavaScript -->
+        <div>
+          <h4 class="text-sm font-medium text-zinc-400 mb-1">JavaScript</h4>
+          <div class="bg-zinc-800 rounded-lg p-3 text-sm overflow-x-auto">
+            <pre class="text-zinc-300"><code>const API = 'https://sketchyapi.snaf.foo/api/v1';
+const headers = { 'Content-Type': 'application/json', 'X-API-Key': 'sk-sketchy-mvp-001' };
+
+// Submit
+let job = await fetch(`${API}/comic`, {
+  method: 'POST', headers,
+  body: JSON.stringify({ article_url: 'https://example.com/news', panels: 9, tone: 'savage' })
+}).then(r => r.json());
+
+// Poll
+while (!['completed', 'failed'].includes(job.status)) {
+  await new Promise(r => setTimeout(r, 5000));
+  job = await fetch(`${API}/comic/${job.job_id}`, { headers }).then(r => r.json());
+}
+
+console.log('Comic ready:', job.combined_image_url);</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-zinc-800 mt-16 py-6 text-center text-zinc-600 text-sm">
+    <p>🎭 SketchyAPI — Satire-as-a-Service · <a href="/docs" class="text-zinc-500 hover:text-zinc-300">API Docs</a></p>
+  </footer>
+
+  <script>
+    function app() {
+      return {
+        page: 'home',
+        apiKey: localStorage.getItem('sketchy_api_key') || '',
+        apiKeyInput: localStorage.getItem('sketchy_api_key') || '',
+        inputMode: 'url',
+        generating: false,
+        error: '',
+        currentJob: null,
+        pollTimer: null,
+        balance: {},
+        history: JSON.parse(localStorage.getItem('sketchy_history') || '[]'),
+        form: {
+          article_url: '',
+          article_text: '',
+          title: '',
+          panels: 18,
+          tone: 'sharp',
+          style: 'editorial cartoon style, vibrant colors, Mort Drucker MAD Magazine style, bold ink outlines',
+          language: 'en',
+        },
+        toneLabels: { gentle: '😊 Gentle', sharp: '😏 Sharp', savage: '🔥 Savage', absurd: '🤪 Absurd' },
+        styles: [
+          { label: '📰 Editorial', value: 'editorial cartoon style, vibrant colors, Mort Drucker MAD Magazine style, bold ink outlines' },
+          { label: '✨ Clean', value: 'clean modern illustration, flat colors, simple lines' },
+          { label: '🖋️ Underground', value: 'underground comix style, Robert Crumb, crosshatching, gritty' },
+          { label: '🌸 Manga', value: 'manga style, screentones, dynamic angles, expressive eyes' },
+        ],
+
+        saveKey() {
+          this.apiKey = this.apiKeyInput.trim();
+          localStorage.setItem('sketchy_api_key', this.apiKey);
+        },
+
+        async apiFetch(path, opts = {}) {
+          const res = await fetch(`/api/v1${path}`, {
+            ...opts,
+            headers: { 'Content-Type': 'application/json', 'X-API-Key': this.apiKey, ...(opts.headers || {}) },
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || res.statusText);
+          }
+          return res.json();
+        },
+
+        async submitComic() {
+          this.error = '';
+          const body = { panels: this.form.panels, tone: this.form.tone, style: this.form.style, language: this.form.language };
+          if (this.form.title) body.title = this.form.title;
+          if (this.inputMode === 'url') {
+            if (!this.form.article_url) { this.error = 'Please enter an article URL'; return; }
+            body.article_url = this.form.article_url;
+          } else {
+            if (!this.form.article_text) { this.error = 'Please enter article text'; return; }
+            body.article_text = this.form.article_text;
+          }
+
+          this.generating = true;
+          try {
+            this.currentJob = await this.apiFetch('/comic', { method: 'POST', body: JSON.stringify(body) });
+            this.addToHistory(this.currentJob);
+            this.startPolling();
+          } catch (e) {
+            this.error = e.message;
+            this.generating = false;
+          }
+        },
+
+        startPolling() {
+          if (this.pollTimer) clearInterval(this.pollTimer);
+          this.pollTimer = setInterval(async () => {
+            try {
+              this.currentJob = await this.apiFetch(`/comic/${this.currentJob.job_id}`);
+              this.updateHistory(this.currentJob);
+              if (['completed', 'failed'].includes(this.currentJob.status)) {
+                clearInterval(this.pollTimer);
+                this.pollTimer = null;
+                this.generating = false;
+              }
+            } catch (e) {
+              console.error('Poll error:', e);
+            }
+          }, 5000);
+        },
+
+        addToHistory(job) {
+          this.history = [job, ...this.history.filter(j => j.job_id !== job.job_id)].slice(0, 50);
+          localStorage.setItem('sketchy_history', JSON.stringify(this.history));
+        },
+
+        updateHistory(job) {
+          const idx = this.history.findIndex(j => j.job_id === job.job_id);
+          if (idx >= 0) this.history[idx] = job;
+          localStorage.setItem('sketchy_history', JSON.stringify(this.history));
+        },
+
+        async viewJob(jobId) {
+          try {
+            this.currentJob = await this.apiFetch(`/comic/${jobId}`);
+            this.page = 'generate';
+            if (['pending', 'writing_script', 'generating_images', 'assembling'].includes(this.currentJob.status)) {
+              this.generating = true;
+              this.startPolling();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        },
+
+        async fetchBalance() {
+          try {
+            this.balance = await this.apiFetch('/balance');
+          } catch (e) {
+            console.error('Balance error:', e);
+          }
+        },
+
+        statusLabel(s) {
+          return { pending: '⏳ Pending', writing_script: '✍️ Writing', generating_images: '🎨 Generating', assembling: '🔧 Assembling', completed: '✅ Done', failed: '❌ Failed' }[s] || s;
+        },
+      };
+    }
+  </script>
+</body>
+</html>
