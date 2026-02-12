@@ -1,0 +1,13 @@
+[Unit]
+Description=SSH Tunnel for SketchyAPI (thething -> snaf.foo)
+After=network.target
+
+[Service]
+Type=simple
+User=jcviau
+ExecStart=/usr/bin/ssh -i /home/jcviau/.ssh/id_ed25519_ember -N -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -R 8900:localhost:8900 ember@snaf.foo
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

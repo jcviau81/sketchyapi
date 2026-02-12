@@ -64,6 +64,50 @@ sketchyapi/
     └── comfyui.py   # ComfyUI image generation
 ```
 
+## Deployment (Local — thething + snaf.foo)
+
+### Services (systemd on thething)
+
+| Service | Description | Port |
+|---------|-------------|------|
+| `sketchyapi.service` | FastAPI API server | 8900 |
+| `sketchyapi-worker.service` | Background comic generator | — |
+| `sketchyapi-tunnel.service` | SSH reverse tunnel to snaf.foo | — |
+
+Service files: `deploy/`
+
+### Architecture
+
+```
+User → sketchyapi.snaf.foo (Caddy HTTPS)
+       → SSH tunnel → thething:8900 (FastAPI)
+       → SQLite queue → Worker → ComfyUI (192.168.1.59:8123, RTX 3090)
+       → Panels saved to data/output/
+```
+
+### Enable/Disable
+
+```bash
+# Enable (thething):
+sudo systemctl enable --now sketchyapi sketchyapi-worker sketchyapi-tunnel
+
+# Disable (thething):
+sudo systemctl stop sketchyapi sketchyapi-worker sketchyapi-tunnel
+sudo systemctl disable sketchyapi sketchyapi-worker sketchyapi-tunnel
+
+# Caddy on snaf.foo — block at lines 50-65 in /etc/caddy/Caddyfile
+# Comment out to disable, uncomment to enable, then: sudo systemctl reload caddy
+```
+
+### Performance
+
+- ~16 seconds per panel (Flux fp8, 512x512, 20 steps, RTX 3090)
+- 6-panel comic ≈ 2 minutes total (including script + assembly)
+
+## Status
+
+**PAUSED** as of 2026-02-12. All services disabled. First successful job completed.
+
 ## License
 
 MIT

@@ -1,0 +1,15 @@
+[Unit]
+Description=SketchyAPI - Satire-as-a-Service
+After=network.target
+
+[Service]
+Type=simple
+User=jcviau
+WorkingDirectory=/home/jcviau/sketchyapi
+Environment=PATH=/home/jcviau/sketchyapi/.venv/bin:/usr/bin
+ExecStart=/home/jcviau/sketchyapi/.venv/bin/uvicorn sketchyapi.main:app --host 127.0.0.1 --port 8900
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=SketchyAPI Worker - Comic Generation
+After=network.target sketchyapi.service
+
+[Service]
+Type=simple
+User=jcviau
+WorkingDirectory=/home/jcviau/sketchyapi
+Environment=PATH=/home/jcviau/sketchyapi/.venv/bin:/usr/bin
+EnvironmentFile=/home/jcviau/sketchyapi/.env
+ExecStart=/home/jcviau/sketchyapi/.venv/bin/python -m sketchyapi.worker
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
