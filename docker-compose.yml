@@ -1,0 +1,20 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - data:/data
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["python", "-c", "from sketchyapi.worker import run_worker; run_worker()"]
+    env_file: .env
+    volumes:
+      - data:/data
+    restart: unless-stopped
+
+volumes:
+  data:
